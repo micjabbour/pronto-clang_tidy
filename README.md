@@ -29,4 +29,10 @@ Pronto will look for clang-tidy output file and submit its contents as soon as t
 
 After configuring and running `clang-tidy` on your codebase, redirect and save its standard output to a file (e.g. `clang-tidy.out`).
 
+To do that, you can use my [modified version of `run-clang-tidy.py`](https://gist.github.com/micjabbour/948578e0e24ce99aaaf6b32d848c9c18#file-run-clang-tidy-py) to automatically save clang-tidy output into `clang-tidy.out`:
+```
+python run-clang-tidy.py -checks=* -p build
+```
+where `build` is your build directory (that is, the directory that contains the generated file [`compile_commands.json`](https://clang.llvm.org/docs/JSONCompilationDatabase.html)).
+
 The name of the clang-tidy output file can be configured by setting the environment variable `PRONTO_CLANG_TIDY_OUTFILE` prior to running pronto. If it is not set, the runner will assume the file name is `clang-tidy.out`.
