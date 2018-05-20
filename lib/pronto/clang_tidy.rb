@@ -13,7 +13,9 @@ module Pronto
         next if patch.nil?
         # generate a message for the corresponding added_line in the patch
         message_for(patch, offence)
-      end.flatten.compact
+        # Header warnings are repeated for every compilation unit that includes
+        # them. Use uniq to ignore repeated messages
+      end.flatten.compact.uniq
     end
 
     private
