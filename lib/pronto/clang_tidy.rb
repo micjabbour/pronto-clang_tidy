@@ -39,7 +39,21 @@ module Pronto
 
     def new_message(offence, line)
       path = line.patch.delta.new_file[:path]
-      Message.new(path, line, :warning, offence.msg, nil, self.class)
+      Message.new(path, line, pronto_level(offence.level), offence.msg, nil,
+                  self.class)
+    end
+
+    def pronto_level(clang_level)
+      case clang_level
+      when :warning
+        :warning
+      when :error
+        :error
+      when :fatal
+        :fatal
+      else
+        :info
+      end
     end
 
     # reads clang-tidy output file and returns an array of offences
@@ -53,7 +67,7 @@ module Pronto
                        .map do |offence|
         properties = offence.split(':').map(&:strip)
         OpenStruct.new(file: properties[0], lineno: properties[1].to_i,
-                       level: properties[3], msg: properties[4])
+                       level: properties[3].to_sym, msg: properties[4])
       end
     end
 
