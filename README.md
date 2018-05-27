@@ -3,7 +3,6 @@
 [![Code Climate](https://codeclimate.com/github/micjabbour/pronto-clang_tidy.png)](https://codeclimate.com/github/micjabbour/pronto-clang_tidy)
 [![Build Status](https://travis-ci.org/micjabbour/pronto-clang_tidy.png)](https://travis-ci.org/micjabbour/pronto-clang_tidy)
 [![Gem Version](https://badge.fury.io/rb/pronto-clang_tidy.png)](http://badge.fury.io/rb/pronto-clang_tidy)
-[![Dependency Status](https://gemnasium.com/micjabbour/pronto-clang_tidy.png)](https://gemnasium.com/micjabbour/pronto-clang_tidy)
 
 Pronto runner for [clang-tidy](http://clang.llvm.org/extra/clang-tidy), a clang-based C++ "linter" tool. [What is Pronto?](https://github.com/prontolabs/pronto)
 
