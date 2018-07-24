@@ -62,17 +62,19 @@ module Pronto
         puts 'WARN: pronto-clang_tidy: clang-tidy output file not found'
         return []
       end
-      clang_tidy_output = File.read clang_tidy_output_file
-      clang_tidy_output.each_line.select { |line| line_is_offence? line }
-                       .map do |offence|
-        properties = offence.split(':').map(&:strip)
-        OpenStruct.new(file: properties[0], lineno: properties[1].to_i,
-                       level: properties[3].to_sym, msg: properties[4])
-      end
+      parse_clang_tidy_output File.read(clang_tidy_output_file)
     end
 
-    def line_is_offence?(line)
-      line.start_with?('/') && /:\d+:\d+:/.match(line) && /\[\S+\]/.match(line)
+    # parses clang-tidy output and returns a list of offences
+    def parse_clang_tidy_output(output)
+      regexp = Regexp.new '(?<filename>^/[^:]+):(?<line>\d+):' \
+                          '(?<col>\d+): (?<level>[^:]+): (?<message>.+$)'
+      offences = []
+      output.scan regexp do |filename, line, _col, level, message|
+        offences << OpenStruct.new(file: filename, lineno: line.to_i,
+                                   level: level.to_sym, msg: message)
+      end
+      offences
     end
 
     def clang_tidy_output_file
