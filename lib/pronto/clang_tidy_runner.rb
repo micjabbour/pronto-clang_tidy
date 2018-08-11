@@ -1,7 +1,9 @@
 require 'pronto'
 require_relative 'clang_tidy/diagnostic'
+require_relative 'clang_tidy/offence'
 
 Diagnostic = ::Pronto::ClangTidy::Diagnostic
+Offence = ::Pronto::ClangTidy::Offence
 
 module Pronto
   class ClangTidyRunner < Runner
@@ -11,7 +13,7 @@ module Pronto
       # loop through all offences in clang-tidy output
       offences.map do |offence|
         # find the patch that corresponds to the current offence
-        patch = patch_for(offence.filename)
+        patch = patch_for(offence.main.filename)
         next if patch.nil?
         # generate a message for the corresponding added_line in the patch
         message_for(patch, offence)
@@ -24,7 +26,7 @@ module Pronto
 
     def message_for(patch, offence)
       line = patch.added_lines.find do |added_line|
-        added_line.new_lineno == offence.line_no
+        added_line.new_lineno == offence.main.line_no
       end
       new_message(offence, line) unless line.nil?
     end
@@ -41,8 +43,8 @@ module Pronto
 
     def new_message(offence, line)
       path = line.patch.delta.new_file[:path]
-      Message.new(path, line, pronto_level(offence.level), offence.message,
-                  nil, self.class)
+      Message.new(path, line, pronto_level(offence.main.level),
+                  offence.main.message, nil, self.class)
     end
 
     def pronto_level(clang_level)
@@ -73,12 +75,26 @@ module Pronto
       header_regexp = Regexp.new '(?<filename>^/[^:]+):(?<line_no>\d+):' \
                                  '(?<col_no>\d+): (?<level>[^:]+): ' \
                                  '(?<message>.+$)'
-      offences = []
+      diagnostics = []
       output.each_line do |line|
-        if match_data = header_regexp.match(line) then
-          offences << Diagnostic.new(*match_data.captures)
+        if (match_data = header_regexp.match(line))
+          diagnostics << Diagnostic.new(*match_data.captures)
         else
-          offences.last.hints << line
+          diagnostics.last.hints << line unless diagnostics.empty?
+        end
+      end
+      group_diagnostics(diagnostics)
+    end
+
+    # turns an array of diagnostics into an array of offences by grouping
+    # note-level diagnostics with their corresponding diagnostic
+    def group_diagnostics(diags)
+      offences = []
+      diags.each do |diag|
+        if diag.level != :note
+          offences << Offence.new(diag)
+        else
+          offences.last << diag unless offences.empty?
         end
       end
       offences
