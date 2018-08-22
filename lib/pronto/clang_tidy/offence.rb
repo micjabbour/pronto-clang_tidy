@@ -1,7 +1,5 @@
 require_relative 'diagnostic'
 
-# TODO: design class interface
-
 module Pronto
   module ClangTidy
     # a class that groups multiple related diagnostics together
@@ -18,6 +16,26 @@ module Pronto
 
       def <<(note_diagnostic)
         @notes << note_diagnostic
+      end
+
+      # the message to be attached to the main diagnostic's line
+      def main_message
+        result = "#{main.message}\n"
+        notes.each do |note|
+          result << note.format_diagnostic
+        end
+        result
+      end
+
+      # the message to be attached to any of the notes' lines
+      #
+      # this is used only when the main diagnostic's line is not changed
+      def note_message
+        result = main.format_diagnostic
+        notes.each do |note|
+          result << note.format_diagnostic
+        end
+        result
       end
     end
   end
